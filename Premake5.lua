@@ -9,15 +9,21 @@
 -- Determine the root directory where we are calling premake from (this is our working directory)
 local rootDir = path.getabsolute(_WORKING_DIR)
 
+-- Make the projects dir if it does not exist
+os.execute("{MKDIR} projects")
+
 -- Get all the directories in our projects directory
 local projects = os.matchdirs(rootDir .. "/projects/*")
+premake.info("Loaded projects")
 
--- Select the last item in the project directory to be our startup project 
--- (this is easily changed in VS, this is just to be handy)
-startup = path.getbasename(projects[#projects])
+if #projects > 0 then
+	-- Select the last item in the project directory to be our startup project 
+	-- (this is easily changed in VS, this is just to be handy)
+	startup = path.getbasename(projects[#projects])
 
--- Log what the startup project will be
-premake.info("Startup project: " .. startup)
+	-- Log what the startup project will be
+	premake.info("Startup project: " .. startup)
+end
 
 -- This is our solution name
 workspace "INFR-1350U Framework"
@@ -52,106 +58,109 @@ include "external/glad"
 include "external/imgui"
 include "external/stbs"
 
--- Iterate over all the projects (k is the index)
-for k, proj in pairs(projects) do
+if #projects > 0 then
 
-	-- Extract the project name
-	local name = path.getbasename(proj)
-	-- Extract a relative path for the project
-	local relpath = path.getrelative(rootDir, proj)
+	-- Iterate over all the projects (k is the index)
+	for k, proj in pairs(projects) do
 
-	-- Log the project in the console
-	premake.info("Adding project: " .. name)
-	premake.info("Source: " .. relpath)
+		-- Extract the project name
+		local name = path.getbasename(proj)
+		-- Extract a relative path for the project
+		local relpath = path.getrelative(rootDir, proj)
 
-	-- Add project to the solution
-	project(name)
-		-- Root folder of the project
-		location(relpath)
-		-- Output type of the project
-		kind "ConsoleApp"
-		-- Language (we are using MSVC)
-		language "C++"
-		-- C++ version (we are using the c++17 standard)
-		cppdialect "C++17"
-		-- Sets RuntimLibrary to MultiThreaded (non DLL version for static linking)
-		staticruntime "on"
+		-- Log the project in the console
+		premake.info("Adding project: " .. name)
+		premake.info("Source: " .. relpath)
 
-		-- This is where we will output our compiled program
-		targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-		-- This is where we will output our intermediate files
-		objdir ("obj/" .. outputdir .. "/%{prj.name}")
+		-- Add project to the solution
+		project(name)
+			-- Root folder of the project
+			location(relpath)
+			-- Output type of the project
+			kind "ConsoleApp"
+			-- Language (we are using MSVC)
+			language "C++"
+			-- C++ version (we are using the c++17 standard)
+			cppdialect "C++17"
+			-- Sets RuntimLibrary to MultiThreaded (non DLL version for static linking)
+			staticruntime "on"
 
-		-- Set the debug working directory to the output directory
-		debugdir ("%{wks.location}bin\\%{outputdir}\\%{prj.name}")
+			-- This is where we will output our compiled program
+			targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+			-- This is where we will output our intermediate files
+			objdir ("obj/" .. outputdir .. "/%{prj.name}")
 
-		-- Gets the absolute directory of the current project
-		absdir = "%{wks.location}bin\\%{outputdir}\\%{prj.name}"
+			-- Set the debug working directory to the output directory
+			debugdir ("%{wks.location}bin\\%{outputdir}\\%{prj.name}")
 
-		-- Gets our project's resource file location
-		resdir = "%{prj.location}res"
+			-- Gets the absolute directory of the current project
+			absdir = "%{wks.location}bin\\%{outputdir}\\%{prj.name}"
 
-		-- These are the commands that get executed after build, but before debugging
-		postbuildcommands {
-			-- This step copies over anything in the dll folder to the output directory
-	  		"(xcopy /Q /E /Y /I /C \"%{wks.location}external\\dll\" \"%{absdir}\")",
-	  		-- This step ensures that the project has a resource directory
-	  		"(IF NOT EXIST \"%{resdir}\" mkdir \"%{resdir}\")",
-	  		-- This step copies all the resources to the output directory
-	  		"(xcopy /Q /E /Y /I /C \"%{resdir}\" \"%{absdir}\")"
-		} 
+			-- Gets our project's resource file location
+			resdir = "%{prj.location}res"
 
-		-- Our source files are everything in the src folder
-		files {
-			"%{prj.location}\\src\\**.h",
-			"%{prj.location}\\src\\**.cpp"
-		}
+			-- These are the commands that get executed after build, but before debugging
+			postbuildcommands {
+				-- This step copies over anything in the dll folder to the output directory
+		  		"(xcopy /Q /E /Y /I /C \"%{wks.location}external\\dll\" \"%{absdir}\")",
+		  		-- This step ensures that the project has a resource directory
+		  		"(IF NOT EXIST \"%{resdir}\" mkdir \"%{resdir}\")",
+		  		-- This step copies all the resources to the output directory
+		  		"(xcopy /Q /E /Y /I /C \"%{resdir}\" \"%{absdir}\")"
+			} 
 
-		-- Disable CRT secure warnings
-		defines {
-			"_CRT_SECURE_NO_WARNINGS"
-		}
-
-		-- Defines what directories we want to include
-		includedirs {
-			"%{prj.location}\\src",
-			"%{IncludeDir.fmod}",	
-			"%{IncludeDir.spdlog}",		
-			"%{IncludeDir.glfw}",
-			"%{IncludeDir.glad}",
-			"%{IncludeDir.ImGui}",
-			"%{IncludeDir.glm}",
-			"%{IncludeDir.stbs}"
-		}
-
-		-- These are what we are linking to (mostly other projects)
-		links { 
-			"GLFW",
-			"Glad",
-			"stbs",
-			"ImGui",
-			"opengl32.lib",
-			"imagehlp.lib",
-			"external/fmod/fmod64.lib"
-		}
-
-		-- This filters for our windows builds
-		filter "system:windows"
-			systemversion "latest"
-
-			-- Set some defines for the windows builds
-			defines {
-				"GLFW_INCLUDE_NONE", 
-				"WINDOWS"
+			-- Our source files are everything in the src folder
+			files {
+				"%{prj.location}\\src\\**.h",
+				"%{prj.location}\\src\\**.cpp"
 			}
 
-		-- Filters for our debug configurations
-		filter "configurations:Debug"
-			runtime "Debug"
-			symbols "on"
+			-- Disable CRT secure warnings
+			defines {
+				"_CRT_SECURE_NO_WARNINGS"
+			}
 
-		-- Filters for release configuration
-		filter "configurations:Release"
-			runtime "Release"
-			optimize "on"
+			-- Defines what directories we want to include
+			includedirs {
+				"%{prj.location}\\src",
+				"%{IncludeDir.fmod}",	
+				"%{IncludeDir.spdlog}",		
+				"%{IncludeDir.glfw}",
+				"%{IncludeDir.glad}",
+				"%{IncludeDir.ImGui}",
+				"%{IncludeDir.glm}",
+				"%{IncludeDir.stbs}"
+			}
+
+			-- These are what we are linking to (mostly other projects)
+			links { 
+				"GLFW",
+				"Glad",
+				"stbs",
+				"ImGui",
+				"opengl32.lib",
+				"imagehlp.lib",
+				"external/fmod/fmod64.lib"
+			}
+
+			-- This filters for our windows builds
+			filter "system:windows"
+				systemversion "latest"
+
+				-- Set some defines for the windows builds
+				defines {
+					"GLFW_INCLUDE_NONE", 
+					"WINDOWS"
+				}
+
+			-- Filters for our debug configurations
+			filter "configurations:Debug"
+				runtime "Debug"
+				symbols "on"
+
+			-- Filters for release configuration
+			filter "configurations:Release"
+				runtime "Release"
+				optimize "on"
+	end
 end
