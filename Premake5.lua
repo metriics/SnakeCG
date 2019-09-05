@@ -9,12 +9,21 @@
 -- Determine the root directory where we are calling premake from (this is our working directory)
 local rootDir = path.getabsolute(_WORKING_DIR)
 
--- Get all the directories in our projects directory
-local projects = os.matchdirs(rootDir .. "/projects/*")
+-- Log what the startup project will be
+premake.info("Working DIR: " .. _WORKING_DIR)
 
--- Select the last item in the project directory to be our startup project 
--- (this is easily changed in VS, this is just to be handy)
-startup = path.getbasename(projects[#projects])
+premake.info("Search DIR: " .. rootDir .. "\\projects\\*")
+
+-- Get all the directories in our projects directory
+local projects = os.matchdirs(rootDir .. "\\projects\\*")
+
+if (projects[#projects]) then
+	-- Select the last item in the project directory to be our startup project 
+	-- (this is easily changed in VS, this is just to be handy)
+	startup = path.getbasename(projects[#projects])
+else 
+	startup = ""
+end
 
 -- Log what the startup project will be
 premake.info("Startup project: " .. startup)
@@ -38,14 +47,15 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["glfw"] = "external/glfw3/include"
-IncludeDir["glad"] = "external/glad/include" 
-IncludeDir["ImGui"] = "external/imgui"
-IncludeDir["glm"] = "external/GLM/include"
-IncludeDir["stbs"] = "external/stbs"
-IncludeDir["fmod"] = "external/fmod"
-IncludeDir["spdlog"] = "external/spdlog"
+IncludeDir["glfw"]    = "external/glfw3/include"
+IncludeDir["glad"]    = "external/glad/include" 
+IncludeDir["ImGui"]   = "external/imgui"
+IncludeDir["glm"]     = "external/GLM/include"
+IncludeDir["stbs"]    = "external/stbs"
+IncludeDir["fmod"]    = "external/fmod"
+IncludeDir["spdlog"]  = "external/spdlog"
 IncludeDir["toolkit"] = "external/toolkit"
+IncludeDir["entt"]    = "external/entt"
 
 -- These are other projects that we want to include in our solution (each needs their own premake)
 include "external/glfw3"
@@ -117,6 +127,7 @@ for k, proj in pairs(projects) do
 		-- Defines what directories we want to include
 		includedirs {
 			"%{prj.location}\\src",
+			"%{IncludeDir.entt}",
 			"%{IncludeDir.fmod}",	
 			"%{IncludeDir.spdlog}",		
 			"%{IncludeDir.glfw}",
