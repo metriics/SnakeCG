@@ -21,6 +21,10 @@ project "Toolkit"
     filter "system:windows"
         systemversion "latest"
 
+        defines {
+            "WINDOWS"
+        }
+
         
     filter "configurations:Debug"
         runtime "Debug"
