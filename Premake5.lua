@@ -56,6 +56,7 @@ IncludeDir["fmod"]    = "external/fmod"
 IncludeDir["spdlog"]  = "external/spdlog"
 IncludeDir["toolkit"] = "external/toolkit"
 IncludeDir["entt"]    = "external/entt"
+IncludeDir["cereal"]    = "external/cereal"
 
 -- These are other projects that we want to include in our solution (each needs their own premake)
 include "external/glfw3"
@@ -128,6 +129,7 @@ for k, proj in pairs(projects) do
 		includedirs {
 			"%{prj.location}\\src",
 			"%{IncludeDir.entt}",
+			"%{IncludeDir.cereal}",
 			"%{IncludeDir.fmod}",	
 			"%{IncludeDir.spdlog}",		
 			"%{IncludeDir.glfw}",
