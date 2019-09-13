@@ -11,6 +11,11 @@ public:
 	static void Init();
 
 	/*
+		De-initializes the logging subsytem, and cleans up all the logging resources
+	 */
+	static void Uninitialize();
+
+	/*
 		Gets the logging instance
 	*/
 	inline static std::shared_ptr<spdlog::logger>& GetLogger() { return myLogger; }

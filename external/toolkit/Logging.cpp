@@ -34,6 +34,14 @@ void Logger::Init() {
 #endif
 }
 
+void Logger::Uninitialize()
+{
+	HANDLE process = GetCurrentProcess();
+	SymCleanup(process);
+	myLogger = nullptr;
+	spdlog::shutdown();
+}
+
 std::string Logger::DumpStackTrace()
 {
 	std::stringstream ss;
