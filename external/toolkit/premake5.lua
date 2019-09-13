@@ -13,7 +13,9 @@ project "Toolkit"
         "Logging.h",
         "Logging.cpp",
         "CerealGLM.h",
-        "EnumToString.h"
+        "EnumToString.h",
+        "Sys.h",
+        "Sys.cpp"
     }
 
     includedirs {
