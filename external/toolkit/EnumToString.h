@@ -28,12 +28,14 @@ inline std::vector<std::string> splitString(const std::string& str, char sep = '
 	return vecString;
 }
 
+
 /*
  * Declare an enum value with string conversion support, using a specified base type
  * @param E The name of the enum
  * @param T The underlying type of the enum
  */
-#define ENUM(E, T, ...)                                                                                                           \
+#define ENUM(E, T, ...) ENUM_(E, T, __VA_ARGS__)
+#define ENUM_(E, T, ...)                                                                                                           \
     enum class E : T {                                                                                                            \
         __VA_ARGS__                                                                                                               \
     };                                                                                                                            \
@@ -90,12 +92,14 @@ inline std::string GetVals(const std::string& text, int& base) {
 	std::vector<char> number;
 	while (ix < text.length()) {
 		if (std::isdigit(text[ix])) {
-			if (!(base != 10 && text[ix] == '0' && number.size() == 0)) {
+			if (!(text[ix] == '0' && number.empty())) {
 				number.push_back(text[ix]);
 			}
 		}
 		ix++;
 	}
+	if (number.empty())
+		number.push_back('0');
 	number.push_back('\0');
 	std::string result = std::string(number.begin(), number.end());
 	return result;
