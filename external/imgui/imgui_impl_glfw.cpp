@@ -440,7 +440,9 @@ static void ImGui_ImplGlfw_CreateWindow(ImGuiViewport* viewport)
     glfwWindowHint(GLFW_VISIBLE, false);
     glfwWindowHint(GLFW_FOCUSED, false);
 #if GLFW_HAS_TRANSPARENT_FRAMEBUFFERS
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_TransparentBackbuffers) {
+		glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
+	}
 #endif
 #if GLFW_HAS_FOCUS_ON_SHOW
      glfwWindowHint(GLFW_FOCUS_ON_SHOW, false);

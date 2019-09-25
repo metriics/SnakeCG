@@ -15,6 +15,11 @@
 #include "TTKContext.h"
 #include <GLM/gtc/matrix_transform.inl>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "GLFW/glfw3.h"
+
 // Helpers to convert raw pointers to glm types, and some colors
 #define BLACK glm::vec4(0, 0, 0, 1)
 #define WHITE glm::vec4(1, 1, 1, 1)
@@ -80,8 +85,82 @@ void TTK::Graphics::Cleanup() {
 	TTK::FontRenderer::DestroyContext();
 }
 
-void TTK::Graphics::DrawText2D(const std::string& text, int posX, int posY, int fontSize) {
-	TTK::Context::Instance().RenderText(text.c_str(), { posX, posY }, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), fontSize / 32.0f);
+void TTK::Graphics::DrawText2D(const std::string& text, float posX, float posY, float fontSize) {
+	DrawText2D(text, posX, posY, { 0, 0, 0, 1 }, fontSize);
+}
+
+void TTK::Graphics::DrawText2D(const std::string& text, float posX, float posY, const glm::vec4& color, float fontSize) {
+	TTK::Context::Instance().RenderText(text.c_str(), { posX, posY }, color, fontSize / 32.0f);
+}
+
+void TTK::Graphics::InitImGUI(GLFWwindow* window) {
+	// Creates a new ImGUI context5
+	ImGui::CreateContext();
+	// Gets our ImGUI input/output 
+	ImGuiIO& io = ImGui::GetIO();
+	// Enable keyboard navigation
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	// Allow docking to our window
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	// Allow multiple viewports (so we can drag ImGui off our window)
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	// Allow our viewports to use transparent backbuffers
+	io.ConfigFlags |= ImGuiConfigFlags_TransparentBackbuffers;
+
+	// Set up the ImGui implementation for OpenGL
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 410");
+
+	// Dark mode FTW
+	ImGui::StyleColorsDark();
+
+	// Get our imgui style
+	ImGuiStyle& style = ImGui::GetStyle();
+	//style.Alpha = 1.0f;
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+		style.WindowRounding = 0.0f;
+		style.Colors[ImGuiCol_WindowBg].w = 0.8f;
+	}
+}
+
+void TTK::Graphics::ShutdownImGUI() {
+	// Cleanup the ImGui implementation
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	// Destroy our ImGui context
+	ImGui::DestroyContext();
+}
+
+void TTK::Graphics::BeginGUI() {
+	// Implementation new frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	// ImGui context new frame
+	ImGui::NewFrame();
+}
+
+void TTK::Graphics::EndGUI() {
+	// Cache the active window
+	GLFWwindow* window = glfwGetCurrentContext();
+	
+	// Make sure ImGui knows how big our window is
+	ImGuiIO& io = ImGui::GetIO();
+	int width{ 0 }, height{ 0 };
+	glfwGetWindowSize(window, &width, &height);
+	io.DisplaySize = ImVec2(width, height);
+
+	// Render all of our ImGui elements
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	// If we have multiple viewports enabled (can drag into a new window)
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+		// Update the windows that ImGui is using
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		// Restore our gl context
+		glfwMakeContextCurrent(window);
+	}
 }
 
 void TTK::Graphics::DrawLine(const glm::vec3& p0, const glm::vec3& p1, float lineWidth, const glm::vec4& colour) {

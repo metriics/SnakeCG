@@ -16,6 +16,8 @@
 #include <string>
 #include <glm/glm.hpp>
 
+struct GLFWwindow;
+
 namespace TTK
 {
 	/*
@@ -29,14 +31,43 @@ namespace TTK
 	class Graphics
 	{
 	public:
-		// Description:
-		// Draws text at the specified position on the screen. Make sure
-		// you call SetCameraMode2D before you try drawing any text.
-		// Arguments:
-		// posX, posY are to be specified in pixels. 0, 0 is the bottom left
-		// corner of the window.
-		static void DrawText2D(const std::string& text, int posX, int posY, int fontSize = 16);
+		/*
+		 * Draws the given text on the screen at the given coordinates
+		 * @param text The text to draw
+		 * @param posX The x position to draw the text at, in screen coordinates
+		 * @param posY The y position to draw the text at, in screen coordinates
+		 * @param fontSize The size of the text to draw, default is 16
+		 */
+		static void DrawText2D(const std::string& text, float posX, float posY, float fontSize = 16);
+		/*
+		 * Draws the given text on the screen at the given coordinates
+		 * @param text The text to draw
+		 * @param posX The x position to draw the text at, in screen coordinates
+		 * @param posY The y position to draw the text at, in screen coordinates
+		 * @param color The color of the text to draw
+		 * @param fontSize The size of the text to draw, default is 16
+		 */
+		static void DrawText2D(const std::string& text, float posX, float posY, const glm::vec4& color, float fontSize = 16);
 
+		/*
+		 * Initializes ImGUI, using the given window
+		 * @param window The root window of our game
+		 */
+		static void InitImGUI(GLFWwindow* window);
+		/*
+		 * Shuts down ImGUI and cleans up all of its resources
+		 */
+		static void ShutdownImGUI();
+
+		/*
+		 * Starts a new GUI frame, should be called every frame before any ImGUI calls
+		 */
+		static void BeginGUI();
+		/*
+		 * Ends a GUI frame, should be called every frame after all ImGUI calls
+		 */
+		static void EndGUI();
+		
 		/*
 		 * Draws a line from p0 to p1, with the given color
 		 * @param p0 The starting point of the line

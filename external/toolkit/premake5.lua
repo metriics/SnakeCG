@@ -32,6 +32,7 @@ project "Toolkit"
         "%{wks.location}\\external\\GLM\\include",
         "%{wks.location}\\external\\glad\\include",
         "%{wks.location}\\external\\glfw3\\include",
+        "%{wks.location}\\external\\imgui",
         "%{wks.location}\\external\\stbs"
     }
 
