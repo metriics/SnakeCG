@@ -49,6 +49,10 @@ void TTK::Graphics::SetCameraMatrix(const glm::mat4& view) {
 	TTK::Context::Instance().SetView(view);
 }
 
+const glm::mat4& TTK::Graphics::GetViewProjection() {
+	return TTK::Context::Instance().GetViewProjection();
+}
+
 void TTK::Graphics::SetBackgroundColour(float r, float g, float b) {
 	glClearColor(r, g, b, 1.0f);
 }

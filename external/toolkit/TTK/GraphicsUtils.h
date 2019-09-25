@@ -213,6 +213,11 @@ namespace TTK
 		 */
 		static void SetCameraMatrix(const glm::mat4& view = glm::mat4(1.0f));
 
+		/*
+		 * Gets the view projection that TTK is currently using for rendering
+		 */
+		static const glm::mat4& GetViewProjection();
+
 		// Description:
 		// Sets the colour of the screen after ClearScreen() has been called.
 		static void SetBackgroundColour(float r, float g, float b);
