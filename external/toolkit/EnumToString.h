@@ -34,8 +34,7 @@ inline std::vector<std::string> splitString(const std::string& str, char sep = '
  * @param E The name of the enum
  * @param T The underlying type of the enum
  */
-#define ENUM(E, T, ...) ENUM_(E, T, __VA_ARGS__)
-#define ENUM_(E, T, ...)                                                                                                           \
+#define ENUM_(E, T, ...)                                                                                                          \
     enum class E : T {                                                                                                            \
         __VA_ARGS__                                                                                                               \
     };                                                                                                                            \
@@ -65,11 +64,13 @@ inline std::vector<std::string> splitString(const std::string& str, char sep = '
 	/* Determines if a given value is valid for an enum */                                                                        \
 	inline size_t CountOf##E(E value) { (void)value; return impl::E##MapName.size(); }
 
+#define ENUM(E, T, ...) ENUM_(E, T, __VA_ARGS__)
+
 /*
  * Declare an enum value with string support, using the int32_t base type
  * @param E The name for the enum
  */
-#define DECLARE_ENUM(E, ...) DECLARE_ENUM_WITH_TYPE(E, int32_t, __VA_ARGS__)
+#define DECLARE_ENUM(E, ...) ENUM_(E, int32_t, __VA_ARGS__)
 
 /*
  * Converts a string into

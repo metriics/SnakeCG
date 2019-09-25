@@ -15,18 +15,32 @@ project "Toolkit"
         "CerealGLM.h",
         "EnumToString.h",
         "Sys.h",
-        "Sys.cpp"
+        "Sys.cpp",
+        "TTK\\**.cpp",
+        "TTK\\**.h"
+    }
+
+    links {
+        "Glad",
+        "GLFW",
+        "stbs",
+        "opengl32.lib"
     }
 
     includedirs {
-        "%{wks.location}\\external\\spdlog"
+        "%{wks.location}\\external\\spdlog",
+        "%{wks.location}\\external\\GLM\\include",
+        "%{wks.location}\\external\\glad\\include",
+        "%{wks.location}\\external\\glfw3\\include",
+        "%{wks.location}\\external\\stbs"
     }
 
     filter "system:windows"
         systemversion "latest"
 
         defines {
-            "WINDOWS"
+            "WINDOWS",
+            "TTK_GLFW"
         }
 
         
