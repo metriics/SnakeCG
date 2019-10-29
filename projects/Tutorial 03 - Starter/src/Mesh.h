@@ -12,6 +12,8 @@ struct Vertex {
 
 class Mesh {
 public:
+	typedef std::shared_ptr<Mesh> Sptr;
+
 	// Creates a new mesh from the given vertices and indices
 	Mesh(Vertex* vertices, size_t numVerts, uint32_t* indices, size_t numIndices);
 	~Mesh();

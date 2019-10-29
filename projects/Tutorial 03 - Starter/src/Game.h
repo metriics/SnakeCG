@@ -8,6 +8,8 @@
 
 #include "Mesh.h"
 #include "Shader.h"
+#include <vector>
+#include "Object.h"
 
 class Game {
 public:
@@ -15,6 +17,15 @@ public:
 	~Game();
 
 	void Run();
+
+	// called when a key has been pressed
+	void KeyPressed(GLFWwindow* window, int key);
+
+	// called when a key is being held down
+	void KeyHeld(GLFWwindow* window, int key);
+
+	// called when a key has been released
+	void KeyReleased(GLFWwindow* window, int key);
 
 protected:
 	void Initialize();
@@ -31,6 +42,7 @@ protected:
 
 	void Update(float deltaTime);
 	void Draw(float deltaTime);
+	void addSnekPart();
 	void DrawGui(float deltaTime);
 
 private:
@@ -41,8 +53,24 @@ private:
 	// Stores the title of the game's window
 	char        myWindowTitle[32];
 
+	std::vector<Object*> snek;
+	Object* fruit; //red
+	Object* bigFruit; //yellow
+	Object* dead; //green
+
+	int direction = 0;
+	float timer = 0;
+
 	// A shared pointer to our mesh
 	Mesh_sptr   myMesh;
+	std::vector<Mesh_sptr> snekMeshes;
+	Mesh_sptr fruitMesh;
+	Mesh_sptr bigFruitMesh;
+	Mesh_sptr deadMesh;
+	
+
 	// A shared pointer to our shader
 	Shader_sptr myShader;
+
+	bool w, a, s, d = false;
 };

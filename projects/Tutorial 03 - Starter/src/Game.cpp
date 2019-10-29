@@ -19,6 +19,7 @@
 	@param message   The human readable message from OpenGL
 	@param userParam The pointer we set with glDebugMessageCallback (should be the game pointer)
 */
+
 void GlDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	switch (severity) {
 	case GL_DEBUG_SEVERITY_LOW:          LOG_INFO(message); break;
@@ -34,6 +35,76 @@ void GlDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 void GlfwWindowResizedCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
+
+void Game::KeyPressed(GLFWwindow* window, int key) {
+	Game* game = (Game*)glfwGetWindowUserPointer(window);
+
+	if (game == nullptr) // if game is 'null', then it is returned
+		return;
+
+	// checks key value.
+	switch (key)
+	{
+	case GLFW_KEY_SPACE:
+		addSnekPart();
+		break;
+	case GLFW_KEY_W:
+		game->direction = 0;
+		break;
+	case GLFW_KEY_S:
+		game->direction = 1;
+		break;
+	case GLFW_KEY_A:
+		game->direction = 2;
+		break;
+	case GLFW_KEY_D:
+		game->direction = 3;
+		break;
+	}
+}
+
+void Game::KeyHeld(GLFWwindow* window, int key) {
+	Game* game = (Game*)glfwGetWindowUserPointer(window);
+
+	if (game == nullptr) // if game is 'null', then it is returned
+		return;
+}
+
+void Game::KeyReleased(GLFWwindow* window, int key) {
+	Game* game = (Game*)glfwGetWindowUserPointer(window);
+
+	if (game == nullptr) // if game is 'null', then it is returned
+		return;
+
+	// checks key value.
+	switch (key)
+	{
+	}
+}
+
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	Game* game = (Game*)glfwGetWindowUserPointer(window);
+
+	if (game != nullptr)
+	{
+		// checks for what type of button press happened.
+		switch (action)
+		{
+		case GLFW_PRESS: // key has been pressed
+			game->KeyPressed(window, key);
+			break;
+
+		case GLFW_REPEAT: // key is held down
+			game->KeyHeld(window, key);
+			break;
+
+		case GLFW_RELEASE: // key has been released
+			game->KeyReleased(window, key);
+			break;
+		}
+	}
+}
+
 
 Game::Game() :
 	myWindow(nullptr),
@@ -91,7 +162,7 @@ void Game::Initialize() {
 	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
 
 	// Create a new GLFW window
-	myWindow = glfwCreateWindow(600, 600, myWindowTitle, nullptr, nullptr);
+	myWindow = glfwCreateWindow(800, 800, myWindowTitle, nullptr, nullptr);
 
 	// Tie our game to our window, so we can access it via callbacks
 	glfwSetWindowUserPointer(myWindow, this);
@@ -115,6 +186,7 @@ void Game::Initialize() {
 	// Enable debugging, and route messages to our callback
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(GlDebugMessage, this); 
+	glfwSetKeyCallback(myWindow, KeyCallback);
 
 }
 
@@ -123,25 +195,12 @@ void Game::Shutdown() {
 }
 
 void Game::LoadContent() {
-	// Create our 4 vertices
-	Vertex vertices[4] = {
-		//       Position                   Color
-		//    x      y     z         r    g     b     a
-		{{ -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }},
-		{{  0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f }},
-		{{ -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f }},
-		{{  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }},
-	};
-
-	// Create our 6 indices
-	uint32_t indices[6] = {
-		0, 1, 2,
-		2, 1, 3
-	};
+	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1))); // head
+	fruit = new Object(glm::vec3(0.5, 0, 0), glm::vec4(1, 0, 0, 1));
 
 	// Create a new mesh from the data
-	myMesh = std::make_shared<Mesh>(vertices, 4, indices, 6);
-	
+	snekMeshes.push_back(snek[0]->getMesh());
+	fruitMesh = fruit->getMesh();
 	// Create and compile shader
 	myShader = std::make_shared<Shader>();
 	myShader->Load("passthrough.vs", "passthrough.fs");
@@ -221,15 +280,67 @@ void Game::ImGuiEndFrame() {
 
 void Game::Update(float deltaTime) {
 
+	if (timer >= 10) {
+		
+		for (int i = snek.size() - 1; i > 0; i--) {
+			snek[i]->setPosition(snek[i - 1]->getPosition());
+			snekMeshes[i] = snek[i]->getMesh();
+		}
+
+		switch (direction) {
+		case 0:
+			snek[0]->setPosition(0, 0.05);
+			break;
+		case 1:
+			snek[0]->setPosition(0, -0.05);
+			break;
+		case 2:
+			snek[0]->setPosition(-0.05, 0);
+			break;
+		case 3:
+			snek[0]->setPosition(0.05, 0);
+			break;
+		}
+
+		snekMeshes[0] = snek[0]->getMesh();
+		timer = 0;
+	}
+	else {
+		timer++;
+	}
 }
 
+void Game::addSnekPart() {
+	glm::vec3 temp = glm::vec3(0, 0, 0);
+
+	switch (direction) {
+	case 0:
+		temp = glm::vec3(0, 0.05, 0);
+		break;
+	case 1:
+		temp = glm::vec3(0, -0.05, 0);
+		break;
+	case 2:
+		temp = glm::vec3(-0.05, 0, 0);
+		break;
+	case 3:
+		temp = glm::vec3(0.05, 0, 0);
+		break;
+	}
+
+	snek.push_back(new Object(glm::vec3(snek[snek.size() - 1]->getPosition().x, snek[snek.size() - 1]->getPosition().y, 0) + temp, glm::vec4(0, 0, 1, 1)));
+	snekMeshes.push_back(snek[snek.size()-1]->getMesh());
+}
 void Game::Draw(float deltaTime) {
 	// Clear our screen every frame
 	glClearColor(myClearColor.x, myClearColor.y, myClearColor.z, myClearColor.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	myShader->Bind();
-	myMesh->Draw();
+	for (int i = 0; i < snekMeshes.size(); i++) {
+		snekMeshes[i]->Draw();
+	}
+	fruitMesh->Draw();
 }
 
 void Game::DrawGui(float deltaTime) {
@@ -249,3 +360,4 @@ void Game::DrawGui(float deltaTime) {
 	ImGui::Text("Time: %f", glfwGetTime());
 	ImGui::End();
 }
+
