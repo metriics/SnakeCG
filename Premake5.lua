@@ -29,7 +29,7 @@ end
 premake.info("Startup project: " .. startup)
 
 -- This is our solution name
-workspace "INFR-1350U Framework"
+workspace "SnakeCG"
 	-- Processor architecture
 	architecture "x64"
 
