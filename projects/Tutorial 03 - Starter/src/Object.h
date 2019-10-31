@@ -6,15 +6,18 @@
 class Object {
 public:
 	Object();
-	Object(glm::vec3 pos, glm::vec4 col);
+	Object(glm::vec3 pos, glm::vec4 col, int dir);
 
 	void updateMesh();
 
 	glm::vec3 getPosition();
 	void setPosition(glm::vec3);
-	void setPosition(float x, float y);
+	void addToPosition(float x, float y, float z);
 
 	Mesh::Sptr& getMesh();
+
+	int getDirection();
+	void setDirection(int dir);
 
 	glm::vec4 getColour();
 
@@ -24,4 +27,5 @@ private:
 	Mesh::Sptr mesh;
 	glm::vec3 position;
 	glm::vec4 colour;
+	int direction;
 };

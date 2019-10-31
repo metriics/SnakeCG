@@ -49,16 +49,20 @@ void Game::KeyPressed(GLFWwindow* window, int key) {
 		addSnekPart();
 		break;
 	case GLFW_KEY_W:
-		game->direction = 0;
+		if(snek[0]->getDirection() != 1)
+			game->snek[0]->setDirection(0);
 		break;
 	case GLFW_KEY_S:
-		game->direction = 1;
+		if (snek[0]->getDirection() != 0)
+			game->snek[0]->setDirection(1);
 		break;
 	case GLFW_KEY_A:
-		game->direction = 2;
+		if (snek[0]->getDirection() != 3)
+			game->snek[0]->setDirection(2);
 		break;
 	case GLFW_KEY_D:
-		game->direction = 3;
+		if (snek[0]->getDirection() != 2)
+			game->snek[0]->setDirection(3);
 		break;
 	}
 }
@@ -195,11 +199,12 @@ void Game::Shutdown() {
 }
 
 void Game::LoadContent() {
-	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1))); // head
-	fruit = new Object(glm::vec3(0.5, 0, 0), glm::vec4(1, 0, 0, 1));
+	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1), 0)); // head
+	fruit = new Object(glm::vec3(0.5, 0, 0), glm::vec4(1, 0, 0, 1), -1);
 
 	// Create a new mesh from the data
 	snekMeshes.push_back(snek[0]->getMesh());
+	addSnekPart();
 	fruitMesh = fruit->getMesh();
 	// Create and compile shader
 	myShader = std::make_shared<Shader>();
@@ -280,29 +285,30 @@ void Game::ImGuiEndFrame() {
 
 void Game::Update(float deltaTime) {
 
-	if (timer >= 10) {
+	if (timer >= 60) {
 		
-		for (int i = snek.size() - 1; i > 0; i--) {
-			snek[i]->setPosition(snek[i - 1]->getPosition());
+		for (int i = snek.size() - 1; i >= 0; i--) {
+			if (i != 0) {
+				snek[i]->setDirection(snek[i - 1]->getDirection());
+			}
+
+			switch (snek[i]->getDirection()) {
+			case 0:
+				snek[i]->addToPosition(0, 0.05, 0);
+				break;
+			case 1:
+				snek[i]->addToPosition(0, -0.05, 0);
+				break;
+			case 2:
+				snek[i]->addToPosition(-0.05, 0, 0);
+				break;
+			case 3:
+				snek[i]->addToPosition(0.05, 0, 0);
+				break;
+			}
 			snekMeshes[i] = snek[i]->getMesh();
 		}
 
-		switch (direction) {
-		case 0:
-			snek[0]->setPosition(0, 0.05);
-			break;
-		case 1:
-			snek[0]->setPosition(0, -0.05);
-			break;
-		case 2:
-			snek[0]->setPosition(-0.05, 0);
-			break;
-		case 3:
-			snek[0]->setPosition(0.05, 0);
-			break;
-		}
-
-		snekMeshes[0] = snek[0]->getMesh();
 		timer = 0;
 	}
 	else {
@@ -313,22 +319,22 @@ void Game::Update(float deltaTime) {
 void Game::addSnekPart() {
 	glm::vec3 temp = glm::vec3(0, 0, 0);
 
-	switch (direction) {
+	switch (snek[snek.size() - 1]->getDirection()) {
 	case 0:
-		temp = glm::vec3(0, 0.05, 0);
-		break;
-	case 1:
 		temp = glm::vec3(0, -0.05, 0);
 		break;
+	case 1:
+		temp = glm::vec3(0, 0.05, 0);
+		break;
 	case 2:
-		temp = glm::vec3(-0.05, 0, 0);
+		temp = glm::vec3(0.05, 0, 0);
 		break;
 	case 3:
-		temp = glm::vec3(0.05, 0, 0);
+		temp = glm::vec3(-0.05, 0, 0);
 		break;
 	}
 
-	snek.push_back(new Object(glm::vec3(snek[snek.size() - 1]->getPosition().x, snek[snek.size() - 1]->getPosition().y, 0) + temp, glm::vec4(0, 0, 1, 1)));
+ 	snek.push_back(new Object(glm::vec3(snek[snek.size() - 1]->getPosition().x, snek[snek.size() - 1]->getPosition().y, 0) + temp, glm::vec4(0, 0, 1, 1), snek[snek.size() - 1]->getDirection()));
 	snekMeshes.push_back(snek[snek.size()-1]->getMesh());
 }
 void Game::Draw(float deltaTime) {
@@ -337,7 +343,7 @@ void Game::Draw(float deltaTime) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	myShader->Bind();
-	for (int i = 0; i < snekMeshes.size(); i++) {
+	for (int i = 1; i < snekMeshes.size(); i++) {
 		snekMeshes[i]->Draw();
 	}
 	fruitMesh->Draw();

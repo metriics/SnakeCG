@@ -4,9 +4,10 @@ Object::Object()
 {
 }
 
-Object::Object(glm::vec3 pos, glm::vec4 col) {
+Object::Object(glm::vec3 pos, glm::vec4 col, int dir) {
 	this->position = pos;
 	this->colour = col;
+	this->direction = dir;
 
 	//positions = { {position.x, position.y, position.z }, {colour.x, colour.y, colour.z, colour.w} };
 	
@@ -36,7 +37,7 @@ void Object::updateMesh()
 
 glm::vec3 Object::getPosition()
 {
-	return glm::vec3();
+	return position;
 }
 
 void Object::setPosition(glm::vec3 pos) {
@@ -50,10 +51,11 @@ void Object::setPosition(glm::vec3 pos) {
 	updateMesh();
 }
 
-void Object::setPosition(float x, float y)
+void Object::addToPosition(float x, float y, float z)
 {
 	this->position.x += x;
 	this->position.y += y;
+	this->position.z += z;
 
 	setPosition(position);
 }
@@ -61,6 +63,16 @@ void Object::setPosition(float x, float y)
 Mesh::Sptr& Object::getMesh()
 {
 	return mesh;
+}
+
+int Object::getDirection()
+{
+	return direction;
+}
+
+void Object::setDirection(int dir)
+{
+	direction = dir;
 }
 
 glm::vec4 Object::getColour()

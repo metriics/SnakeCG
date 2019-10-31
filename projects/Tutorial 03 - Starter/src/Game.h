@@ -58,7 +58,6 @@ private:
 	Object* bigFruit; //yellow
 	Object* dead; //green
 
-	int direction = 0;
 	float timer = 0;
 
 	// A shared pointer to our mesh
