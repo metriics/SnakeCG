@@ -45,8 +45,8 @@ void Game::KeyPressed(GLFWwindow* window, int key) {
 	// checks key value.
 	switch (key)
 	{
-	case GLFW_KEY_SPACE:
-		addSnekPart();
+	case GLFW_KEY_ESCAPE:
+		exit(0);
 		break;
 	case GLFW_KEY_W:
 		if(snek[0]->getDirection() != 1)
@@ -156,6 +156,8 @@ void Game::Run()
 }
 
 void Game::Initialize() {
+
+	srand(time(NULL));
 	// Initialize GLFW
 	if (glfwInit() == GLFW_FALSE) {
 		std::cout << "Failed to initialize GLFW" << std::endl;
@@ -200,17 +202,25 @@ void Game::Shutdown() {
 
 void Game::LoadContent() {
 	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1), 0)); // head
-	fruit = new Object(glm::vec3(0.5, 0, 0), glm::vec4(1, 0, 0, 1), -1);
-
-	// Create a new mesh from the data
 	snekMeshes.push_back(snek[0]->getMesh());
 	addSnekPart();
+
+	fruit = new Object(glm::vec3(0, 0, 0), glm::vec4(1, 0, 0, 1), -1);
+	newFruitPos(fruit);
 	fruitMesh = fruit->getMesh();
+
+	bigFruit = new Object(glm::vec3(0, 0, 0), glm::vec4(1, 1, 0, 1), -1);
+	newFruitPos(bigFruit);
+	bigFruitMesh = bigFruit->getMesh();
+
+	dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1));
+	newFruitPos(dead[0]);
+	deadMesh.push_back(dead[0]->getMesh());
+
 	// Create and compile shader
 	myShader = std::make_shared<Shader>();
 	myShader->Load("passthrough.vs", "passthrough.fs");
 }
-
 
 void Game::UnloadContent() {
 
@@ -286,8 +296,9 @@ void Game::ImGuiEndFrame() {
 void Game::Update(float deltaTime) {
 
 	CollisionCheck();
+	timer = glfwGetTime() - 0.1 * count;
 
-	if (timer >= 60) {
+	if (timer >= 0.1) {
 		
 		for (int i = snek.size() - 1; i >= 0; i--) {
 			if (i != 0) {
@@ -311,39 +322,60 @@ void Game::Update(float deltaTime) {
 			snekMeshes[i] = snek[i]->getMesh();
 		}
 
-		timer = 0;
+		count++;
 	}
-	else {
-		timer++;
+
+	obTimer = glfwGetTime() - 10 * obCount;
+
+	if (obTimer >= 10.0f) {
+		dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1));
+		newFruitPos(dead[dead.size() - 1]);
+		deadMesh.push_back(dead[dead.size() - 1]->getMesh());
+		obCount++;
 	}
 }
 
 void Game::CollisionCheck() {
 	for (int i = 1; i <= snek.size() - 1; i++) {
-		if (snek[i]->getPosition().x < -0.975) {
-			snek[i]->setPosition(glm::vec3(0.975, snek[i]->getPosition().y, snek[i]->getPosition().z));
+		if (snek[i]->getPosition().x < -1.05) {
+			snek[i]->setPosition(glm::vec3(1.05, snek[i]->getPosition().y, snek[i]->getPosition().z));
 		}
-		else if (snek[i]->getPosition().x > 0.975) {
-			snek[i]->setPosition(glm::vec3(-0.975, snek[i]->getPosition().y, snek[i]->getPosition().z));
+		else if (snek[i]->getPosition().x > 1.05) {
+			snek[i]->setPosition(glm::vec3(-1.05, snek[i]->getPosition().y, snek[i]->getPosition().z));
 		}
-		else if (snek[i]->getPosition().y < -0.975) {
-			snek[i]->setPosition(glm::vec3(snek[i]->getPosition().x, 0.975, snek[i]->getPosition().z));
+		else if (snek[i]->getPosition().y < -1.05) {
+			snek[i]->setPosition(glm::vec3(snek[i]->getPosition().x, 1.05, snek[i]->getPosition().z));
 		}
-		else if (snek[i]->getPosition().y > 0.975) {
-			snek[i]->setPosition(glm::vec3(snek[i]->getPosition().x, -0.975, snek[i]->getPosition().z));
+		else if (snek[i]->getPosition().y > 1.05) {
+			snek[i]->setPosition(glm::vec3(snek[i]->getPosition().x, -1.05, snek[i]->getPosition().z));
 		}
 	}
 
 	for (int i = 2; i < snek.size() - 1; i++) {
 		if (collisionManager.isColliding(snek[1], snek[i])) {
-			//End Game
+			resetGame();
 		}
 	}
 
-	if (collisionManager.isColliding(snek[1], fruit)) {
+	if (collisionManager.isColliding(snek[1], fruit) && whichFruit == 1) {
 		addSnekPart();
-		fruit->setPosition(glm::vec3(0, 0, 0));
-		fruit->updateMesh();
+		newFruitPos(fruit);
+		fruitMesh = fruit->getMesh();
+		whichFruit = (rand() % 2) + 1;
+	}
+
+	if (collisionManager.isColliding(snek[1], bigFruit) && whichFruit == 2) {
+		addSnekPart();
+		addSnekPart();
+		newFruitPos(bigFruit);
+		bigFruitMesh = bigFruit->getMesh();
+		whichFruit = (rand() % 2) + 1;
+	}
+
+	for (int i = 0; i <= dead.size() - 1; i++) {
+		if (collisionManager.isColliding(snek[1], dead[i])) {
+			resetGame();
+		}
 	}
 }
 
@@ -377,7 +409,17 @@ void Game::Draw(float deltaTime) {
 	for (int i = 1; i < snekMeshes.size(); i++) {
 		snekMeshes[i]->Draw();
 	}
-	fruitMesh->Draw();
+
+	if (whichFruit == 1) {
+		fruitMesh->Draw();
+	}
+	else if (whichFruit == 2) {
+		bigFruitMesh->Draw();
+	}
+
+	for (int i = 0; i <= dead.size() - 1; i++) {
+		deadMesh[i]->Draw();
+	}
 }
 
 void Game::DrawGui(float deltaTime) {
@@ -396,5 +438,53 @@ void Game::DrawGui(float deltaTime) {
 	// Draw a formatted text line
 	ImGui::Text("Time: %f", glfwGetTime());
 	ImGui::End();
+}
+
+void Game::resetGame()
+{
+	snek.clear();
+	snekMeshes.clear();
+	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1), 0)); // head
+	snekMeshes.push_back(snek[0]->getMesh());
+	addSnekPart();
+
+	newFruitPos(fruit);
+	fruitMesh = fruit->getMesh();
+
+	newFruitPos(bigFruit);
+	bigFruitMesh = bigFruit->getMesh();
+
+	dead.clear();
+	deadMesh.clear();
+	dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1));
+	newFruitPos(dead[0]);
+	deadMesh.push_back(dead[0]->getMesh());
+}
+
+void Game::newFruitPos(Object* obj)
+{
+	float x = 0.4, y = 0.4, z = 0;
+	float possibleNumbers[39] = {
+								 //Negative -1 - 0
+								 -0.95, -0.9, -0.85, -0.8, -0.75, -0.7, -0.65, -0.6, -0.55, -0.5,
+								 -0.45, -0.4, -0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0.0,
+								 //Positive 0.05 - 1
+								 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5,
+								 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05 
+								};
+	//while (fmod(x, 0.05f) == 0) {
+		//x = -1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f))));
+		int temp = rand() % 38;
+		x = possibleNumbers[temp];
+	//}
+
+	//while (fmod(y, 0.05f) == 0) {
+		//y = -1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f))));
+		temp = rand() % 38;
+		y = possibleNumbers[temp];
+	//}
+
+	obj->setPosition(glm::vec3(x, y, z));
+	obj->updateMesh();
 }
 

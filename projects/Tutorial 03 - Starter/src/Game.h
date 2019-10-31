@@ -47,6 +47,9 @@ protected:
 	void addSnekPart();
 	void DrawGui(float deltaTime);
 
+	void resetGame();
+	void newFruitPos(Object* obj);
+
 private:
 	// Stores the main window that the game is running in
 	GLFWwindow* myWindow;
@@ -60,16 +63,20 @@ private:
 	std::vector<Object*> snek;
 	Object* fruit; //red
 	Object* bigFruit; //yellow
-	Object* dead; //green
+	std::vector<Object*> dead; //green
 
 	float timer = 0;
+	float obTimer = 0;
+	float count = 0;
+	float obCount = 0;
+	int whichFruit = 1; //1 reg fruit, 2 big fruit
 
 	// A shared pointer to our mesh
 	Mesh_sptr   myMesh;
 	std::vector<Mesh_sptr> snekMeshes;
 	Mesh_sptr fruitMesh;
 	Mesh_sptr bigFruitMesh;
-	Mesh_sptr deadMesh;
+	std::vector<Mesh_sptr> deadMesh;
 	
 
 	// A shared pointer to our shader
