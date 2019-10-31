@@ -10,6 +10,7 @@
 #include "Shader.h"
 #include <vector>
 #include "Object.h"
+#include "Collision.h"
 
 class Game {
 public:
@@ -41,6 +42,7 @@ protected:
 	void ImGuiEndFrame();
 
 	void Update(float deltaTime);
+	void CollisionCheck();
 	void Draw(float deltaTime);
 	void addSnekPart();
 	void DrawGui(float deltaTime);
@@ -52,6 +54,8 @@ private:
 	glm::vec4   myClearColor;
 	// Stores the title of the game's window
 	char        myWindowTitle[32];
+
+	Collision collisionManager;
 
 	std::vector<Object*> snek;
 	Object* fruit; //red

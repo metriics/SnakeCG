@@ -285,6 +285,8 @@ void Game::ImGuiEndFrame() {
 
 void Game::Update(float deltaTime) {
 
+	CollisionCheck();
+
 	if (timer >= 60) {
 		
 		for (int i = snek.size() - 1; i >= 0; i--) {
@@ -313,6 +315,35 @@ void Game::Update(float deltaTime) {
 	}
 	else {
 		timer++;
+	}
+}
+
+void Game::CollisionCheck() {
+	for (int i = 1; i <= snek.size() - 1; i++) {
+		if (snek[i]->getPosition().x < -0.975) {
+			snek[i]->setPosition(glm::vec3(0.975, snek[i]->getPosition().y, snek[i]->getPosition().z));
+		}
+		else if (snek[i]->getPosition().x > 0.975) {
+			snek[i]->setPosition(glm::vec3(-0.975, snek[i]->getPosition().y, snek[i]->getPosition().z));
+		}
+		else if (snek[i]->getPosition().y < -0.975) {
+			snek[i]->setPosition(glm::vec3(snek[i]->getPosition().x, 0.975, snek[i]->getPosition().z));
+		}
+		else if (snek[i]->getPosition().y > 0.975) {
+			snek[i]->setPosition(glm::vec3(snek[i]->getPosition().x, -0.975, snek[i]->getPosition().z));
+		}
+	}
+
+	for (int i = 2; i < snek.size() - 1; i++) {
+		if (collisionManager.isColliding(snek[1], snek[i])) {
+			//End Game
+		}
+	}
+
+	if (collisionManager.isColliding(snek[1], fruit)) {
+		addSnekPart();
+		fruit->setPosition(glm::vec3(0, 0, 0));
+		fruit->updateMesh();
 	}
 }
 
