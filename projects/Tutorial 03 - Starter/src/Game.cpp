@@ -489,6 +489,8 @@ void Game::resetGame()
 
 void Game::newFruitPos(Object* obj)
 {
+	bool intersecting = true;
+
 	float x = 0.4, y = 0.4, z = 0;
 	float possibleNumbers[39] = {
 								 //Negative -1 - 0
@@ -498,17 +500,57 @@ void Game::newFruitPos(Object* obj)
 								 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5,
 								 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05 
 								};
-	//while (fmod(x, 0.05f) == 0) {
-		//x = -1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f))));
+	
+	while (intersecting) { // check to make sure we arent spawing food in the snake body or on obstacles
 		int temp = rand() % 38;
 		x = possibleNumbers[temp];
-	//}
 
-	//while (fmod(y, 0.05f) == 0) {
-		//y = -1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f))));
 		temp = rand() % 38;
 		y = possibleNumbers[temp];
-	//}
+
+		bool iSnek = false;
+		bool iDead = false;
+		bool iFruit = false;
+		bool iBigFruit = false;
+
+		for (int i = 0; i < snek.size() - 1; i++) {
+			if (snek[i]->getPosition().x != x || snek[i]->getPosition().y != y) {
+				iSnek = false;
+			}
+			else {
+				iSnek = true;
+			}
+		}
+		for (int i = 0; i < dead.size(); i++) {
+			if (dead[i]->getPosition().x != x || dead[i]->getPosition().y != y) {
+				iDead = false;
+			}
+			else {
+				iDead = true;
+			}
+		}
+		if (whichFruit == 1) {
+			if (this->fruit->getPosition().x != x || this->fruit->getPosition().y != y) {
+				iFruit = false;
+			}
+			else {
+				iFruit = true;
+			}
+		}
+		if (whichFruit == 2) {
+			if (this->bigFruit->getPosition().x != x || this->bigFruit->getPosition().y != y) {
+				iBigFruit = false;
+			}
+			else {
+				iBigFruit = true;
+			}
+		}
+
+		if (!iSnek && !iDead && !iFruit && !iBigFruit) {
+			intersecting = false;
+		}
+	}
+	
 
 	obj->setPosition(glm::vec3(x, y, z));
 	obj->updateMesh();
