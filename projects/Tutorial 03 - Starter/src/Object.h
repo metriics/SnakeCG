@@ -29,3 +29,9 @@ private:
 	glm::vec4 colour;
 	int direction;
 };
+
+class ScoreDot : public Object {
+public:
+	ScoreDot();
+	ScoreDot(glm::vec3 pos);
+};

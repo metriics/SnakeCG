@@ -217,6 +217,9 @@ void Game::LoadContent() {
 	newFruitPos(dead[0]);
 	deadMesh.push_back(dead[0]->getMesh());
 
+	//scoreDot.push_back(new ScoreDot(glm::vec3(0, 0, 0)));
+	//scoreDotMesh.push_back(scoreDot[0]->getMesh());
+
 	// Create and compile shader
 	myShader = std::make_shared<Shader>();
 	myShader->Load("passthrough.vs", "passthrough.fs");
@@ -362,6 +365,8 @@ void Game::CollisionCheck() {
 		newFruitPos(fruit);
 		fruitMesh = fruit->getMesh();
 		whichFruit = (rand() % 2) + 1;
+
+		addScoreDot();
 	}
 
 	if (collisionManager.isColliding(snek[1], bigFruit) && whichFruit == 2) {
@@ -370,6 +375,9 @@ void Game::CollisionCheck() {
 		newFruitPos(bigFruit);
 		bigFruitMesh = bigFruit->getMesh();
 		whichFruit = (rand() % 2) + 1;
+
+		addScoreDot();
+		addScoreDot();
 	}
 
 	for (int i = 0; i <= dead.size() - 1; i++) {
@@ -400,6 +408,16 @@ void Game::addSnekPart() {
  	snek.push_back(new Object(glm::vec3(snek[snek.size() - 1]->getPosition().x, snek[snek.size() - 1]->getPosition().y, 0) + temp, glm::vec4(0, 0, 1, 1), snek[snek.size() - 1]->getDirection()));
 	snekMeshes.push_back(snek[snek.size()-1]->getMesh());
 }
+
+void Game::addScoreDot() {
+	this->score += 1;
+	glm::vec3 startPos = glm::vec3(-0.95, 0.95, 0);
+	startPos.x += ((this->score - 1) * (0.0125 + 0.05));
+
+	scoreDot.push_back(new ScoreDot(startPos));
+	scoreDotMesh.push_back(scoreDot[scoreDot.size() - 1]->getMesh());
+}
+
 void Game::Draw(float deltaTime) {
 	// Clear our screen every frame
 	glClearColor(myClearColor.x, myClearColor.y, myClearColor.z, myClearColor.w);
@@ -419,6 +437,10 @@ void Game::Draw(float deltaTime) {
 
 	for (int i = 0; i <= dead.size() - 1; i++) {
 		deadMesh[i]->Draw();
+	}
+
+	for (int i = 0; i < scoreDotMesh.size(); i++) {
+		scoreDotMesh[i]->Draw();
 	}
 }
 
@@ -459,6 +481,10 @@ void Game::resetGame()
 	dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1));
 	newFruitPos(dead[0]);
 	deadMesh.push_back(dead[0]->getMesh());
+
+	scoreDot.clear();
+	scoreDotMesh.clear();
+	this->score = 0;
 }
 
 void Game::newFruitPos(Object* obj)

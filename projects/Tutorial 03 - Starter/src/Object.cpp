@@ -79,3 +79,25 @@ glm::vec4 Object::getColour()
 {
 	return this->colour;
 }
+
+ScoreDot::ScoreDot() {
+}
+
+ScoreDot::ScoreDot(glm::vec3 pos) {
+	this->setPosition(pos);
+
+	//positions = { {position.x, position.y, position.z }, {colour.x, colour.y, colour.z, colour.w} };
+
+
+
+	positions[0].Position = this->getPosition() + glm::vec3(-0.0125, 0.0125, 0); // bl
+	positions[1].Position = this->getPosition() + glm::vec3(0.0125, 0.0125, 0); // br
+	positions[2].Position = this->getPosition() + glm::vec3(-0.0125, -0.0125, 0); // tl
+	positions[3].Position = this->getPosition() + glm::vec3(0.0125, -0.0125, 0); // tr
+
+	for (int i = 0; i < 4; i++) {
+		positions[i].Color = glm::vec4(1, 1, 1, 1);
+	}
+
+	updateMesh();
+}

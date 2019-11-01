@@ -45,6 +45,7 @@ protected:
 	void CollisionCheck();
 	void Draw(float deltaTime);
 	void addSnekPart();
+	void addScoreDot();
 	void DrawGui(float deltaTime);
 
 	void resetGame();
@@ -64,12 +65,14 @@ private:
 	Object* fruit; //red
 	Object* bigFruit; //yellow
 	std::vector<Object*> dead; //green
+	std::vector<ScoreDot*> scoreDot; // white
 
 	float timer = 0;
 	float obTimer = 0;
 	float count = 0;
 	float obCount = 0;
 	int whichFruit = 1; //1 reg fruit, 2 big fruit
+	int score = 0;
 
 	// A shared pointer to our mesh
 	Mesh_sptr   myMesh;
@@ -77,6 +80,7 @@ private:
 	Mesh_sptr fruitMesh;
 	Mesh_sptr bigFruitMesh;
 	std::vector<Mesh_sptr> deadMesh;
+	std::vector<Mesh_sptr> scoreDotMesh;
 	
 
 	// A shared pointer to our shader
