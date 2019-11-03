@@ -6,6 +6,6 @@ class Collision
 {
 public:
 	Collision();
-	bool isColliding(Object* A, Object* B);
+	bool isColliding(Object* A, Object* B); // return true if two provided objects are colliding
 };
 

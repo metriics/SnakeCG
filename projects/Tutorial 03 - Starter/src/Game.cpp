@@ -121,7 +121,7 @@ Game::~Game() { }
 void Game::Run()
 {
 	Initialize();
-	InitImGui();
+	//InitImGui();
 
 	LoadContent();
 
@@ -136,9 +136,9 @@ void Game::Run()
 		Update(deltaTime);
 		Draw(deltaTime);
 
-		ImGuiNewFrame();
-		DrawGui(deltaTime);
-		ImGuiEndFrame();
+		//ImGuiNewFrame();
+		//DrawGui(deltaTime);
+		//ImGuiEndFrame();
 
 		// Present our image to windows
 		glfwSwapBuffers(myWindow);
@@ -216,9 +216,6 @@ void Game::LoadContent() {
 	dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1));
 	newFruitPos(dead[0]);
 	deadMesh.push_back(dead[0]->getMesh());
-
-	//scoreDot.push_back(new ScoreDot(glm::vec3(0, 0, 0)));
-	//scoreDotMesh.push_back(scoreDot[0]->getMesh());
 
 	// Create and compile shader
 	myShader = std::make_shared<Shader>();
@@ -298,7 +295,7 @@ void Game::ImGuiEndFrame() {
 
 void Game::Update(float deltaTime) {
 
-	CollisionCheck();
+	CollisionCheck(); // check for collisions
 	timer = glfwGetTime() - 0.1 * count;
 
 	if (timer >= 0.1) {
@@ -339,7 +336,7 @@ void Game::Update(float deltaTime) {
 }
 
 void Game::CollisionCheck() {
-	for (int i = 1; i <= snek.size() - 1; i++) {
+	for (int i = 1; i <= snek.size() - 1; i++) { // loop around screen
 		if (snek[i]->getPosition().x < -1.05) {
 			snek[i]->setPosition(glm::vec3(1.05, snek[i]->getPosition().y, snek[i]->getPosition().z));
 		}
@@ -354,33 +351,33 @@ void Game::CollisionCheck() {
 		}
 	}
 
-	for (int i = 2; i < snek.size() - 1; i++) {
+	for (int i = 2; i < snek.size() - 1; i++) { // check for collision with self
 		if (collisionManager.isColliding(snek[1], snek[i])) {
-			resetGame();
+			resetGame(); // die if collidiing with self
 		}
 	}
 
-	if (collisionManager.isColliding(snek[1], fruit) && whichFruit == 1) {
-		addSnekPart();
-		newFruitPos(fruit);
-		fruitMesh = fruit->getMesh();
-		whichFruit = (rand() % 2) + 1;
+	if (collisionManager.isColliding(snek[1], fruit) && whichFruit == 1) { // check for collision with fruit and add score
+		addSnekPart(); // add length to snek
+		newFruitPos(fruit); // gen new fruit pos
+		fruitMesh = fruit->getMesh(); // set fruit mesh with updated verts based on new pos
+		whichFruit = (rand() % 2) + 1; // set which fruit to spawn
 
+		addScoreDot(); // add score
+	}
+
+	if (collisionManager.isColliding(snek[1], bigFruit) && whichFruit == 2) { // check for collision with big fruit
+		addSnekPart(); // add length to snek x2
+		addSnekPart();
+		newFruitPos(bigFruit); // gen new fruit pos
+		bigFruitMesh = bigFruit->getMesh(); // set fruit mesh with updated verts based on new pos
+		whichFruit = (rand() % 2) + 1; // set which fruit to spawn
+
+		addScoreDot();// add score x2
 		addScoreDot();
 	}
 
-	if (collisionManager.isColliding(snek[1], bigFruit) && whichFruit == 2) {
-		addSnekPart();
-		addSnekPart();
-		newFruitPos(bigFruit);
-		bigFruitMesh = bigFruit->getMesh();
-		whichFruit = (rand() % 2) + 1;
-
-		addScoreDot();
-		addScoreDot();
-	}
-
-	for (int i = 0; i <= dead.size() - 1; i++) {
+	for (int i = 0; i <= dead.size() - 1; i++) { // if colliding with obstacle, reset game
 		if (collisionManager.isColliding(snek[1], dead[i])) {
 			resetGame();
 		}
@@ -390,7 +387,7 @@ void Game::CollisionCheck() {
 void Game::addSnekPart() {
 	glm::vec3 temp = glm::vec3(0, 0, 0);
 
-	switch (snek[snek.size() - 1]->getDirection()) {
+	switch (snek[snek.size() - 1]->getDirection()) { // find difference in position with last snek part based on direction
 	case 0:
 		temp = glm::vec3(0, -0.05, 0);
 		break;
@@ -405,17 +402,18 @@ void Game::addSnekPart() {
 		break;
 	}
 
+	// add snek part to vector
  	snek.push_back(new Object(glm::vec3(snek[snek.size() - 1]->getPosition().x, snek[snek.size() - 1]->getPosition().y, 0) + temp, glm::vec4(0, 0, 1, 1), snek[snek.size() - 1]->getDirection()));
-	snekMeshes.push_back(snek[snek.size()-1]->getMesh());
+	snekMeshes.push_back(snek[snek.size()-1]->getMesh()); // add mesh to vector
 }
 
 void Game::addScoreDot() {
-	this->score += 1;
-	glm::vec3 startPos = glm::vec3(-0.95, 0.95, 0);
-	startPos.x += ((this->score - 1) * (0.0125 + 0.05));
+	this->score += 1; // increase score
+	glm::vec3 startPos = glm::vec3(-0.95, 0.95, 0); // define starting pos for score dots on screen
+	startPos.x += ((this->score - 1) * (0.0125 + 0.05)); // determine current score dot position
 
-	scoreDot.push_back(new ScoreDot(startPos));
-	scoreDotMesh.push_back(scoreDot[scoreDot.size() - 1]->getMesh());
+	scoreDot.push_back(new ScoreDot(startPos)); // add new score dot obj to vector
+	scoreDotMesh.push_back(scoreDot[scoreDot.size() - 1]->getMesh()); // add mesh to vector
 }
 
 void Game::Draw(float deltaTime) {
@@ -423,7 +421,9 @@ void Game::Draw(float deltaTime) {
 	glClearColor(myClearColor.x, myClearColor.y, myClearColor.z, myClearColor.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	myShader->Bind();
+	myShader->Bind(); // bind shader
+
+	// draw all meshes
 	for (int i = 1; i < snekMeshes.size(); i++) {
 		snekMeshes[i]->Draw();
 	}
@@ -464,32 +464,33 @@ void Game::DrawGui(float deltaTime) {
 
 void Game::resetGame()
 {
+	// clear snek obj and snek mesh vectors
 	snek.clear();
 	snekMeshes.clear();
-	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1), 0)); // head
-	snekMeshes.push_back(snek[0]->getMesh());
-	addSnekPart();
+	snek.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 0, 1, 1), 0)); // add head
+	snekMeshes.push_back(snek[0]->getMesh()); // add head mesh
+	addSnekPart(); // add snek part since 0th index is invisible andd unused
 
-	newFruitPos(fruit);
-	fruitMesh = fruit->getMesh();
+	newFruitPos(fruit); // gen random fruit pos
+	fruitMesh = fruit->getMesh(); // update mesh with new verts based on pos
 
-	newFruitPos(bigFruit);
-	bigFruitMesh = bigFruit->getMesh();
+	newFruitPos(bigFruit); // gen random big fruit pos
+	bigFruitMesh = bigFruit->getMesh(); // update mesh with new verts based on pos
 
-	dead.clear();
-	deadMesh.clear();
-	dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1));
-	newFruitPos(dead[0]);
-	deadMesh.push_back(dead[0]->getMesh());
+	dead.clear(); // clear obstacle vector
+	deadMesh.clear(); // clear mesh vector
+	dead.push_back(new Object(glm::vec3(0, 0, 0), glm::vec4(0, 1, 0, 1), -1)); // add new obstacle obj
+	newFruitPos(dead[0]); // gen new obstacle pos
+	deadMesh.push_back(dead[0]->getMesh()); // update obstacle mesh verts based on new pos
 
-	scoreDot.clear();
-	scoreDotMesh.clear();
-	this->score = 0;
+	scoreDot.clear(); // clear score dot vector
+	scoreDotMesh.clear(); // clear score dot mesh vector
+	this->score = 0; // reset score
 }
 
 void Game::newFruitPos(Object* obj)
 {
-	bool intersecting = true;
+	bool intersecting = true; // is the new position on another object
 
 	float x = 0.4, y = 0.4, z = 0;
 	float possibleNumbers[39] = {
@@ -501,20 +502,20 @@ void Game::newFruitPos(Object* obj)
 								 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05 
 								};
 	
-	while (intersecting) { // check to make sure we arent spawing food in the snake body or on obstacles
+	while (intersecting) { // check to make sure we arent spawing in the snake body or on obstacles/fruit
 		int temp = rand() % 38;
 		x = possibleNumbers[temp];
 
 		temp = rand() % 38;
 		y = possibleNumbers[temp];
 
-		bool iSnek = false;
-		bool iDead = false;
-		bool iFruit = false;
-		bool iBigFruit = false;
+		bool iSnek = false; // intersecting snek
+		bool iDead = false; // intersecting obstacle
+		bool iFruit = false; // intersecting fruit
+		bool iBigFruit = false; // intersecting big fruit
 
 		for (int i = 0; i < snek.size() - 1; i++) {
-			if (snek[i]->getPosition().x != x || snek[i]->getPosition().y != y) {
+			if (snek[i]->getPosition().x != x && snek[i]->getPosition().y != y) {
 				iSnek = false;
 			}
 			else {
@@ -522,23 +523,23 @@ void Game::newFruitPos(Object* obj)
 			}
 		}
 		for (int i = 0; i < dead.size(); i++) {
-			if (dead[i]->getPosition().x != x || dead[i]->getPosition().y != y) {
+			if (dead[i]->getPosition().x != x && dead[i]->getPosition().y != y) {
 				iDead = false;
 			}
 			else {
 				iDead = true;
 			}
 		}
-		if (whichFruit == 1) {
-			if (this->fruit->getPosition().x != x || this->fruit->getPosition().y != y) {
+		if (whichFruit == 1) { // no need to check if intersecting fruit when only big fruit present
+			if (this->fruit->getPosition().x != x && this->fruit->getPosition().y != y) {
 				iFruit = false;
 			}
 			else {
 				iFruit = true;
 			}
 		}
-		if (whichFruit == 2) {
-			if (this->bigFruit->getPosition().x != x || this->bigFruit->getPosition().y != y) {
+		if (whichFruit == 2) { // no need to check if intersecting big fruit when only fruit present
+			if (this->bigFruit->getPosition().x != x && this->bigFruit->getPosition().y != y) {
 				iBigFruit = false;
 			}
 			else {
@@ -546,13 +547,13 @@ void Game::newFruitPos(Object* obj)
 			}
 		}
 
-		if (!iSnek && !iDead && !iFruit && !iBigFruit) {
+		if (!iSnek && !iDead && !iFruit && !iBigFruit) { // if not intersecting any of the above, intersecting false exit loop
 			intersecting = false;
 		}
 	}
 	
 
-	obj->setPosition(glm::vec3(x, y, z));
-	obj->updateMesh();
+	obj->setPosition(glm::vec3(x, y, z)); // update the position to new randomly generated one
+	obj->updateMesh(); // update the verts in the mesh
 }
 
